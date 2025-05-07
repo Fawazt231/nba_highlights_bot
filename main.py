@@ -29,7 +29,7 @@ def run_main():
     subreddit = reddit.subreddit("nba")
     #query = "flair:highlight OR flair:media"  # This helps filter posts tagged as highlights/media
     #posts = subreddit.search(query, sort="new", time_filter="day", limit=500)
-    posts = subreddit.new(limit=10)
+    posts = subreddit.new(limit=100)
     #print(sum(1 for _ in posts))
 
     video_data = []
@@ -86,7 +86,7 @@ def run_main():
 
             # Load the video using moviepy
             clip = VideoFileClip(filename, target_resolution=(1280,720))
-            clip = process_clip(filename, title)  # Adjust keys accordingly
+            clip = process_clip(filename, title, i)  # Adjust keys accordingly
             # Optionally trim clips or resize here
             # e.g., clip = clip.subclip(0, min(10, clip.duration))  # First 10 sec
 
@@ -97,31 +97,31 @@ def run_main():
             print(e.__traceback__)
 
     # Compile the clips into one video
-    if video_clips:
-        video_clips_small = video_clips[0:2] #small sample size of video clips
-        print("🎬 Concatenating clips...")
-        final_clip = concatenate_videoclips(video_clips_small, method="compose")
-        final_clip.write_videofile(
-            "highlight_compilation.mp4",
-            codec="libx264",
-            bitrate="5000k",
-            preset="medium",
-            audio_codec="aac",
-            fps=30
-        )
-        print("✅ Compilation done: highlight_compilation.mp4")
-    else:
-        print("⚠️ No clips to compile.")
+    # if video_clips:
+    #     video_clips_small = video_clips[0:2] #small sample size of video clips
+    #     print("🎬 Concatenating clips...")
+    #     final_clip = concatenate_videoclips(video_clips_small, method="compose")
+    #     final_clip.write_videofile(
+    #         "highlight_compilation.mp4",
+    #         codec="libx264",
+    #         bitrate="5000k",
+    #         preset="medium",
+    #         audio_codec="aac",
+    #         fps=30
+    #     )
+    #     print("✅ Compilation done: highlight_compilation.mp4")
+    # else:
+    #     print("⚠️ No clips to compile.")
 
 
-def process_clip(filepath, title, resolution_height=720):
+def process_clip(filepath, title, idx, resolution_height=720):
     # Load clip
     clip = VideoFileClip(filepath, target_resolution=(1280,720))
 
     # Create a TextClip (bold, white text, centered)
     txt_clip = TextClip(
         text=title.lstrip("[Highlight] "),
-        font=None,
+        font='Arial',
         font_size=36,
         color='white',
         stroke_color="black",
@@ -135,6 +135,15 @@ def process_clip(filepath, title, resolution_height=720):
 
     # Overlay text on top of the clip
     video_with_text = CompositeVideoClip([clip, txt_clip])
+    
+    video_with_text.write_videofile(
+        f"highlight_{idx}.mp4",
+        codec="libx264",
+        bitrate="5000k",
+        preset="medium",
+        audio_codec="aac",
+        fps=30
+    )
     
     return video_with_text
 
