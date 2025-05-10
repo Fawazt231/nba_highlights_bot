@@ -6,6 +6,9 @@ import time
 import yt_dlp
 from moviepy import VideoFileClip, concatenate_videoclips, TextClip, CompositeVideoClip
 import shutil
+from twitter_bot import post_video_to_twitter_v2
+
+DOWNLOAD_DIR = "nbaDownloads"
 
 def isPastDay(postTime: int):
     return time.time()-postTime <= 86400
@@ -25,12 +28,12 @@ def run_main():
         user_agent=REDDIT_USER_AGENT
     )
 
+    # Directory to store downloaded clips    
+    create_clean_directory(DOWNLOAD_DIR)
+
     # Fetch top video posts from r/nba
     subreddit = reddit.subreddit("nba")
-    #query = "flair:highlight OR flair:media"  # This helps filter posts tagged as highlights/media
-    #posts = subreddit.search(query, sort="new", time_filter="day", limit=500)
-    posts = subreddit.new(limit=100)
-    #print(sum(1 for _ in posts))
+    posts = subreddit.new(limit=3)
 
     video_data = []
     for post in posts:
@@ -52,11 +55,6 @@ def run_main():
                         "upvotes": post.score
                 })
     print(f"Found {len(video_data)} highlight posts.")
-
-    # Directory to store downloaded clips
-    DOWNLOAD_DIR = "nbaDownloads"
-    
-    create_clean_directory(DOWNLOAD_DIR)
 
     video_clips = []
 
@@ -89,38 +87,23 @@ def run_main():
             clip = process_clip(filename, title, i)  # Adjust keys accordingly
             # Optionally trim clips or resize here
             # e.g., clip = clip.subclip(0, min(10, clip.duration))  # First 10 sec
-
-            video_clips.append(clip)
-
         except Exception as e:
             print(f"❌ Failed to process {url}: {e}")
             print(e.__traceback__)
-
-    # Compile the clips into one video
-    # if video_clips:
-    #     video_clips_small = video_clips[0:2] #small sample size of video clips
-    #     print("🎬 Concatenating clips...")
-    #     final_clip = concatenate_videoclips(video_clips_small, method="compose")
-    #     final_clip.write_videofile(
-    #         "highlight_compilation.mp4",
-    #         codec="libx264",
-    #         bitrate="5000k",
-    #         preset="medium",
-    #         audio_codec="aac",
-    #         fps=30
-    #     )
-    #     print("✅ Compilation done: highlight_compilation.mp4")
-    # else:
-    #     print("⚠️ No clips to compile.")
 
 
 def process_clip(filepath, title, idx, resolution_height=720):
     # Load clip
     clip = VideoFileClip(filepath, target_resolution=(1280,720))
+    if clip.duration > 140:
+        return
+    
+    fileName = f"{DOWNLOAD_DIR}/highlight_{idx}.mp4"
+    tweetTitle = title.lstrip("[Highlight] ")
 
     # Create a TextClip (bold, white text, centered)
     txt_clip = TextClip(
-        text=title.lstrip("[Highlight] "),
+        text=tweetTitle,
         font='Arial',
         font_size=36,
         color='white',
@@ -137,42 +120,18 @@ def process_clip(filepath, title, idx, resolution_height=720):
     video_with_text = CompositeVideoClip([clip, txt_clip])
     
     video_with_text.write_videofile(
-        f"highlight_{idx}.mp4",
+        fileName,
         codec="libx264",
         bitrate="5000k",
         preset="medium",
         audio_codec="aac",
         fps=30
     )
-    
+
+    post_video_to_twitter_v2(fileName, tweetTitle)
+    time.sleep(60)
+
     return video_with_text
-
-
-
-
-
-def small_sample():
-    DOWNLOAD_DIR = "nbaDownloads"
-    video_clips = []
-    for i in range(0,1):
-        filename = f"{DOWNLOAD_DIR}/clip_{i}.mp4"
-        clip = VideoFileClip(filename, target_resolution=(1280,720))
-        video_clips.append(clip)
-
-    if video_clips:
-        print("🎬 Concatenating clips...")
-        final_clip = concatenate_videoclips(video_clips, method="compose")
-        final_clip.write_videofile(
-            "highlight_compilation_small.mp4",
-            codec="libx264",
-            bitrate="5000k",
-            preset="medium",
-            audio_codec="aac",
-            fps=30
-        )
-        print("✅ Compilation done: highlight_compilation_small.mp4")
-    else:
-        print("⚠️ No clips to compile.")
 
 def main():
     # print("running small sample")
