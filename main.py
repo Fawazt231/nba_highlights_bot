@@ -122,7 +122,7 @@ def process_clip(filepath, post_title, idx, post_id, resolution_height=720):
     # Create a TextClip (bold, white text, centered)
     txt_clip = TextClip(
         text=tweetTitle,
-        font='Arial',
+        # font='DejaVuSans.ttf',
         font_size=36,
         color='white',
         stroke_color="black",
