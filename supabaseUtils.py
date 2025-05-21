@@ -1,8 +1,8 @@
 from supabase import create_client
 
-from config import SUPABASE_API_URL, SUPABASE_ANON_PUBLIC_API_KEY
+from config import SUPABASE_URL, SUPABASE_ANON_PUBLIC_API_KEY
 
-url = SUPABASE_API_URL
+url = SUPABASE_URL
 key = SUPABASE_ANON_PUBLIC_API_KEY
 supabase = create_client(url, key)
 
