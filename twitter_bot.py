@@ -53,4 +53,4 @@ def post_video_to_twitter_v2(video_path, tweet_text):
                 time.sleep(delay)  # Exponential backoff logic
                 delay *= 2  # Double the delay for the next retry
 
-post_video_to_twitter_v2("nbaDownloads/clip_1.mp4", "[Highlight] Technical foul called on Draymond after elbow to the face of Naz Reid -- his fifth of the playoffs")
+# post_video_to_twitter_v2("nbaDownloads/clip_1.mp4", "[Highlight] Technical foul called on Draymond after elbow to the face of Naz Reid -- his fifth of the playoffs")

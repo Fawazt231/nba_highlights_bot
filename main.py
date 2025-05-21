@@ -6,6 +6,7 @@ import time
 import yt_dlp
 from moviepy import VideoFileClip, concatenate_videoclips, TextClip, CompositeVideoClip
 import shutil
+from supabaseUtils import already_uploaded, mark_as_uploaded
 from twitter_bot import post_video_to_twitter_v2
 
 DOWNLOAD_DIR = "nbaDownloads"
@@ -33,7 +34,7 @@ def run_main():
 
     # Fetch top video posts from r/nba
     subreddit = reddit.subreddit("nba")
-    posts = subreddit.new(limit=3)
+    posts = subreddit.new(limit=55)
 
     video_data = []
     for post in posts:
@@ -44,7 +45,8 @@ def run_main():
                     video_data.append({
                         "title": post.title,
                         "url": post.url,
-                        "upvotes": post.score
+                        "upvotes": post.score,
+                        "id": post.id
                     })
             if 'reddit_video' in post.media.keys():
                 media_details = post.media['reddit_video']
@@ -52,7 +54,8 @@ def run_main():
                     video_data.append({
                         "title": post.title,
                         "url": post.url,
-                        "upvotes": post.score
+                        "upvotes": post.score,
+                        "id": post.id
                 })
     print(f"Found {len(video_data)} highlight posts.")
 
@@ -61,8 +64,12 @@ def run_main():
 
     # Loop through video posts and download them
     for i, post in enumerate(video_data):
+        reddit_post_id = post["id"]
         url = post["url"]
         title = post["title"]
+        if already_uploaded(reddit_post_id):
+            print(f"Post \"{title}\" is already uploaded")
+            continue
         
         # Generate a unique filename
         filename = f"{DOWNLOAD_DIR}/clip_{i}.mp4"
@@ -84,7 +91,7 @@ def run_main():
 
             # Load the video using moviepy
             clip = VideoFileClip(filename, target_resolution=(1280,720))
-            clip = process_clip(filename, title, i)  # Adjust keys accordingly
+            clip = process_clip(filename, title, i, reddit_post_id)  # Adjust keys accordingly
             # Optionally trim clips or resize here
             # e.g., clip = clip.subclip(0, min(10, clip.duration))  # First 10 sec
         except Exception as e:
@@ -92,14 +99,14 @@ def run_main():
             print(e.__traceback__)
 
 
-def process_clip(filepath, title, idx, resolution_height=720):
+def process_clip(filepath, post_title, idx, post_id, resolution_height=720):
     # Load clip
     clip = VideoFileClip(filepath, target_resolution=(1280,720))
     if clip.duration > 140:
         return
     
     fileName = f"{DOWNLOAD_DIR}/highlight_{idx}.mp4"
-    tweetTitle = title.lstrip("[Highlight] ")
+    tweetTitle = post_title.lstrip("[Highlight] ")
 
     # Create a TextClip (bold, white text, centered)
     txt_clip = TextClip(
@@ -129,6 +136,7 @@ def process_clip(filepath, title, idx, resolution_height=720):
     )
 
     post_video_to_twitter_v2(fileName, tweetTitle)
+    mark_as_uploaded(post_id, post_title)
     time.sleep(60)
 
     return video_with_text
