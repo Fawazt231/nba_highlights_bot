@@ -2,12 +2,12 @@ name: Run Reddit Highlights Bot
 
 on:
   schedule:
-    - cron: '0-59/10 23 * * *'  # 6PM-7PM EST
-    - cron: '0-59/10 0 * * *'   # 7PM–8PM EST (00:00–00:59 UTC)
-    - cron: '0-59/10 1 * * *'   # 8PM–9PM EST
-    - cron: '0-59/10 2 * * *'   # 9PM–10PM EST
-    - cron: '0-59/10 3 * * *'   # 10PM–11PM EST
-    - cron: '0-59/10 4 * * *'   # 11PM–12AM EST
+    - cron: '*/10 23 * * *'  # 7PM–8PM EST
+    - cron: '*/10 0 * * *'   # 8PM–9PM EST
+    - cron: '*/10 1 * * *'   # 9PM–10PM EST
+    - cron: '*/10 2 * * *'   # 10PM–11PM EST
+    - cron: '*/10 3 * * *'   # 11PM–12AM EST
+    - cron: '*/10 4 * * *'   # 12AM–1AM EST
   workflow_dispatch:  # allow manual runs
 
 jobs:
