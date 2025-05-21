@@ -34,7 +34,7 @@ def run_main():
 
     # Fetch top video posts from r/nba
     subreddit = reddit.subreddit("nba")
-    posts = subreddit.new(limit=55)
+    posts = subreddit.new(limit=10)
 
     video_data = []
     for post in posts:
@@ -144,4 +144,6 @@ def process_clip(filepath, post_title, idx, post_id, resolution_height=720):
 def main():
     # print("running small sample")
     run_main()
-main()
+
+if __name__ == "__main__":
+    main()
