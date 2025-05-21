@@ -2,6 +2,7 @@ name: Run Reddit Highlights Bot
 
 on:
   schedule:
+    - cron: '0-59/10 23 * * *'  # 6PM-7PM EST
     - cron: '0-59/10 0 * * *'   # 7PM–8PM EST (00:00–00:59 UTC)
     - cron: '0-59/10 1 * * *'   # 8PM–9PM EST
     - cron: '0-59/10 2 * * *'   # 9PM–10PM EST
@@ -45,4 +46,4 @@ jobs:
             SUPABASE_ANON_PUBLIC_API_KEY: ${{ secrets.SUPABASE_ANON_PUBLIC_API_KEY }}
             DB_PWD: ${{ secrets.DB_PWD }}
 
-        run: python bot.py
+        run: python main.py

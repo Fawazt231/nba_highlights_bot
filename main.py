@@ -8,6 +8,16 @@ from moviepy import VideoFileClip, concatenate_videoclips, TextClip, CompositeVi
 import shutil
 from supabaseUtils import already_uploaded, mark_as_uploaded
 from twitter_bot import post_video_to_twitter_v2
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    handlers=[
+        logging.FileHandler("bot.log"),
+        logging.StreamHandler()
+    ]
+)
 
 DOWNLOAD_DIR = "nbaDownloads"
 
@@ -34,7 +44,8 @@ def run_main():
 
     # Fetch top video posts from r/nba
     subreddit = reddit.subreddit("nba")
-    posts = subreddit.new(limit=10)
+    logging.info("Querying subreddit")
+    posts = subreddit.new(limit=20)
 
     video_data = []
     for post in posts:
@@ -57,7 +68,7 @@ def run_main():
                         "upvotes": post.score,
                         "id": post.id
                 })
-    print(f"Found {len(video_data)} highlight posts.")
+    logging.info(f"Found {len(video_data)} highlight posts.")
 
     video_clips = []
 
@@ -68,13 +79,13 @@ def run_main():
         url = post["url"]
         title = post["title"]
         if already_uploaded(reddit_post_id):
-            print(f"Post \"{title}\" is already uploaded")
+            logging.info(f"Post \"{title}\" is already uploaded")
             continue
         
         # Generate a unique filename
         filename = f"{DOWNLOAD_DIR}/clip_{i}.mp4"
         
-        print(f"⬇️ Downloading: {title}")
+        logging.info(f"⬇️ Downloading: {title}")
 
         try:
             # Set up yt_dlp options
@@ -95,8 +106,8 @@ def run_main():
             # Optionally trim clips or resize here
             # e.g., clip = clip.subclip(0, min(10, clip.duration))  # First 10 sec
         except Exception as e:
-            print(f"❌ Failed to process {url}: {e}")
-            print(e.__traceback__)
+            logging.info(f"❌ Failed to process {url}: {e}")
+            logging.info(e.__traceback__)
 
 
 def process_clip(filepath, post_title, idx, post_id, resolution_height=720):
