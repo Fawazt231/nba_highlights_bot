@@ -45,7 +45,7 @@ def run_main():
     # Fetch top video posts from r/nba
     subreddit = reddit.subreddit("nba")
     logging.info("Querying subreddit")
-    posts = subreddit.new(limit=2)
+    posts = subreddit.new(limit=30)
 
     video_data = []
     for post in posts:
@@ -147,8 +147,8 @@ def process_clip(filepath, post_title, idx, post_id, resolution_height=720):
     )
 
     x = post_video_to_twitter_v2(fileName, tweetTitle)
-    print("return of post video to twitter" + x)
-    mark_as_uploaded(post_id, post_title)
+    if x == "SUCCESS":
+        mark_as_uploaded(post_id, post_title)
     time.sleep(60)
 
     return video_with_text
